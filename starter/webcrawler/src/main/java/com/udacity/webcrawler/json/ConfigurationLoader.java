@@ -3,6 +3,7 @@ package com.udacity.webcrawler.json;
 import java.io.Reader;
 import java.nio.file.Path;
 import java.util.Objects;
+import com.fasterxml.jackson;
 
 /**
  * A static utility class that loads a JSON configuration file.
