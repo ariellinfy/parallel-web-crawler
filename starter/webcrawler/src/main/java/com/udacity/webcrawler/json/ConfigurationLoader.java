@@ -45,8 +45,12 @@ public final class ConfigurationLoader {
     Objects.requireNonNull(reader);
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.disable(com.fasterxml.jackson.core.JsonParser.Feature.AUTO_CLOSE_SOURCE);
-    CrawlerConfiguration config = objectMapper.readValue(reader, CrawlerConfiguration.class);
-
-    return;
+    CrawlerConfiguration config = null;
+    try {
+      config = objectMapper.readValue(reader, CrawlerConfiguration.class);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
+    return config;
   }
 }
