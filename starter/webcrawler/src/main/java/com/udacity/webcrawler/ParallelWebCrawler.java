@@ -1,6 +1,7 @@
 package com.udacity.webcrawler;
 
 import com.udacity.webcrawler.json.CrawlResult;
+import com.udacity.webcrawler.parser.PageParserFactory;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -11,9 +12,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ForkJoinPool;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.regex.Pattern;
 
 /**
  * A concrete implementation of {@link WebCrawler} that runs multiple threads on a
@@ -21,32 +23,39 @@ import java.util.stream.Collectors;
  */
 final class ParallelWebCrawler implements WebCrawler {
   private final Clock clock;
+  private final PageParserFactory parserFactory;
   private final Duration timeout;
   private final int popularWordCount;
+  private final int maxDepth;
+  private final List<Pattern> ignoredUrls;
   private final ForkJoinPool pool;
-  private final PageParserFactory parserFactory;
 
   @Inject
   ParallelWebCrawler(
       Clock clock,
+      PageParserFactory parserFactory,
       @Timeout Duration timeout,
       @PopularWordCount int popularWordCount,
-      @TargetParallelism int threadCount,
-      PageParserFactory parserFactory) {
+      @MaxDepth int maxDepth,
+      @IgnoredUrls List<Pattern> ignoredUrls,
+      @TargetParallelism int threadCount) {
     this.clock = clock;
+    this.parserFactory = parserFactory;
     this.timeout = timeout;
     this.popularWordCount = popularWordCount;
+    this.maxDepth = maxDepth;
+    this.ignoredUrls = ignoredUrls;
     this.pool = new ForkJoinPool(Math.min(threadCount, getMaxParallelism()));
-    this.parserFactory = parserFactory;
   }
 
   @Override
   public CrawlResult crawl(List<String> startingUrls) {
     Instant deadline = clock.instant().plus(timeout);
-    Map<String, Integer> counts = new HashMap<>();
-    Set<String> visitedUrls = new HashSet<>();
+    Map<String, Integer> counts = new ConcurrentHashMap<>();
+    Set<String> visitedUrls = new ConcurrentSkipListSet<>();
+
     for (String url : startingUrls) {
-      pool.invoke(new CrawlInternalTask(url, deadline, maxDepth, counts, visitedUrls));
+      pool.invoke(new CrawlInternalTask(url, deadline, maxDepth, counts, visitedUrls, ignoredUrls, clock, parserFactory));
     }
 
     if (counts.isEmpty()) {
