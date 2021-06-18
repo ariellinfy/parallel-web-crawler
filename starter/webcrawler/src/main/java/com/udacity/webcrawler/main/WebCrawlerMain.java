@@ -43,7 +43,7 @@ public final class WebCrawlerMain {
     } else {
       Writer writer = new BufferedWriter(new OutputStreamWriter(System.out));
       resultWriter.write(writer);
-//      System.out.println(result);
+      writer.flush();
     }
     // TODO: Write the profile data to a text file (or System.out if the file name is empty)
   }
