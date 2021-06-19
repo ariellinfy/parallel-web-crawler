@@ -10,6 +10,7 @@ Q1. Run the web crawler using the configurations located at src/main/config/writ
     the ParallelWebCrawler.
 
     Why did the parser take more time when run with ParallelWebCrawler?
+    Because ParallelWebCrawler waits for all recursive subtasks to be completed, more threads increase the capability of executing more recursive works.
 
 
 Q2. Your manager ran your crawler on her old personal computer, using the configurations from Q1, and she notices that
@@ -18,15 +19,24 @@ Q2. Your manager ran your crawler on her old personal computer, using the config
     (a) Suggest one reason why the sequential web crawler was able to read more web pages than the parallel crawler.
         (Hint: Try setting "parallelism" to 1 in the JSON configs to simulate your manager's computer.)
 
+        Main requirement of parallel programming is the hardware and operating system support.
+        If the computer does not have a multi-thread CPU or the required drivers, then the parallel crawler cannot make full use of its advantages;
+        whereas the sequential crawler is designed to optimize single-thread operation.
+
     (b) Suggest one scenario in which the parallel web crawler will almost certainly perform better than the sequential
         crawler. Why will it perform better?
+
+        When user's computer is supported with a multi-thread CPU, and the operating system have the required drivers:
+        as multithreading lead to larger computing power (ie. they allow the system to execute more tasks concurrently), which in the end lead to faster overall execution.
 
 
 Q3. Analyze your method profiler through the lens of Aspect Oriented Programming, by answering the following questions:
 
     (a) What cross-cutting concern is being addressed by the com.udacity.webcrawler.profiler.Profiler class?
+        The performance profiling concern is being addressed.
 
     (b) What are the join points of the Profiler in the web crawler program?
+        Any method with the @Profiled annotation.
 
 
 Q4. Identify three (3) different design patterns used in this project, and explain which interfaces, classes, and/or
@@ -34,5 +44,18 @@ Q4. Identify three (3) different design patterns used in this project, and expla
 
     For each pattern, name one thing about the pattern that you LIKED, and one thing you DISLIKED. If you did not like
     anything, you can name two things you disliked.
+
+    - Abstract factory: this pattern is used in PageParserFactory interface
+    LIKE: this way of creating the parser object hides construction details from caller, so user does not need to worry about any unchanged PageParser parameters
+        (ie. it hides both timeout and ignoredWords values and only exposes access of url variable to user)
+    DISLIKE: it requires to write more java files (both factory interface and implementation class).
+
+    - Builder pattern: this project used many builder pattern, one obvious example is the CrawlerConfiguration class
+    LIKE: it supports method chaining, which helps to minimize the presence of large constructor calls with long lists of parameters
+    DISLIKE: using builder pattern needs to write longer codes
+
+    - Proxy pattern: implemented in ProfilerImpl and ProfilingMethodInterceptor classes
+    LIKE: interfaces determination are deferred until runtime, also gives access control to the delegate object
+    DISLIKE: it increases code complexity and may be hard to understand
 
 
